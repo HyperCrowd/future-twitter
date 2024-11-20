@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Future Twitter Search</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #f4f4f4;
+      flex-direction: column; /* Adjust for better flex behavior */
+    }
+    .container {
+      width: 80%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column; /* Stack elements vertically */
+      height: 100%; /* Make the container full height of viewport */
+      align-items: center;
+    }
+    input, button {
+      padding: 10px;
+      margin: 10px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .output-container {
+      margin-top: 20px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-family: monospace;
+      flex-grow: 1; /* Allow it to take up remaining space */
+      max-height: calc(100vh - 150px); /* Maximum height considering other elements */
+      overflow-y: auto; /* Make the output scrollable when content exceeds the space */
+      width: 100%;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse; /* Ensures borders between cells are merged */
+      margin: 20px 0; /* Adds margin for spacing */
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: center; /* Centers text in each cell */
+      border: 1px solid #ccc; /* Adds border to cells */
+    }
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2; /* Light gray background for even rows */
+    }
+
+    tr:nth-child(odd) {
+      background-color: #ffffff; /* White background for odd rows */
+    }
+
+    th {
+      background-color: #4CAF50; /* Green background for header row */
+      color: white; /* White text color for header */
+      font-weight: bold;
+    }
+
+    tr.disabled {
+      opacity: 0.2; /* Make it look faded */
+      pointer-events: none; /* Prevent interactions */
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Future Twitter Search</h1>
+    <p>Enter a search term, and get the next 60 days of search queries for that term</p>
+    <input type="text" id="targets-input" placeholder="Enter targets here" />
+    <button onclick="generateResults()">Generate</button>
+    
+    <div class="output-container" id="output-container"></div>
+  </div>
+
+  <script>
+    const months = [
+      ['january', 'jan'],
+      ['february', 'feb'],
+      ['march', 'mar'],
+      ['april', 'apr'],
+      ['may', 'may'],
+      ['june', 'jun'],
+      ['july', 'jul'],
+      ['august', 'aug'],
+      ['september', 'sep'],
+      ['october', 'oct'],
+      ['november', 'nov'],
+      ['december', 'dec']
+    ]
+
+    /**
+     * 
+     */
+    function getOrdinalIndicator(day) {
+      if (day === 1 || day === 21 || day === 31) {
+        return day + 'st';
+      } else if (day === 2 || day === 22) {
+        return day + 'nd';
+      } else if (day === 3 || day === 23) {
+        return day + 'rd';
+      } else {
+        return day + 'th';
+      }
+    }
+
+    /**
+     * 
+     */
+    function generateDateCombinations(year, month, day) {
+      const zeroPaddedMonth = month.toString().padStart(2, '0');
+      const nonZeroPaddedMonth = month.toString();
+
+      const zeroPaddedDay = day.toString().padStart(2, '0');
+      const nonZeroPaddedDay = day.toString();
+
+      const fullYear = year.toString();
+      const nonFullYear = year.toString().slice(-2);
+
+      return [
+        `${zeroPaddedMonth}/${zeroPaddedDay}/${fullYear}`,
+        `${zeroPaddedMonth}/${zeroPaddedDay}/${nonFullYear}`,
+        `${zeroPaddedMonth}/${nonZeroPaddedDay}/${fullYear}`,
+        `${zeroPaddedMonth}/${nonZeroPaddedDay}/${nonFullYear}`,
+
+        `${nonZeroPaddedMonth}/${zeroPaddedDay}/${fullYear}`,
+        `${nonZeroPaddedMonth}/${zeroPaddedDay}/${nonFullYear}`,
+        `${nonZeroPaddedMonth}/${nonZeroPaddedDay}/${fullYear}`,
+        `${nonZeroPaddedMonth}/${nonZeroPaddedDay}/${nonFullYear}`,
+
+        `${zeroPaddedMonth}-${zeroPaddedDay}-${fullYear}`,
+        `${zeroPaddedMonth}-${zeroPaddedDay}-${nonFullYear}`,
+        `${zeroPaddedMonth}-${nonZeroPaddedDay}-${fullYear}`,
+        `${zeroPaddedMonth}-${nonZeroPaddedDay}-${nonFullYear}`,
+
+        `${nonZeroPaddedMonth}-${zeroPaddedDay}-${fullYear}`,
+        `${nonZeroPaddedMonth}-${zeroPaddedDay}-${nonFullYear}`,
+        `${nonZeroPaddedMonth}-${nonZeroPaddedDay}-${fullYear}`,
+        `${nonZeroPaddedMonth}-${nonZeroPaddedDay}-${nonFullYear}`
+      ];
+    }
+
+    /**
+     * 
+     */
+    function getNext60Days(startDate) {
+      // Create an empty array to store the dates
+      let dateArray = [];
+      
+      // Create a Date object from the provided start date
+      let currentDate = new Date(startDate);
+      
+      // Loop to add the next 60 days
+      for (let i = 0; i < 60; i++) {
+          // Push the current date into the array
+          dateArray.push(new Date(currentDate));  // Add a copy of the current date
+          // Increment the current date by one day
+          currentDate.setDate(currentDate.getDate() + 1);
+      }
+      
+      return dateArray;
+    }
+
+    /**
+     * 
+     */
+    function toTwitterSearch(query) {
+      return `https://x.com/search?q=${encodeURIComponent(query)}&f=live`
+    }
+
+    /**
+     * Handles the click event on the anchor tag.
+     */
+    function handleLinkClick(event, linkElement) {
+      console.log('what')
+      // Prevent default link behavior (opening a new window).
+      event.preventDefault();
+
+      // Open the link in a new window (same as default behavior).
+      window.open(linkElement.href, '_blank');
+
+      // Get the parent <tr> element and add the "disabled" class.
+      const parentTr = linkElement.closest('tr');
+      console.log(parentTr)
+      parentTr.classList.add('disabled');
+    }
+
+    /**
+     * 
+     */
+    function getDateRow(query) {
+      // Ensure proper HTML structure and fix any syntax issues.
+      return `<tr id="${query[2]}">
+  <td>
+    <a href="${toTwitterSearch(query[1])}" target="_blank" onclick="handleLinkClick(event, this)">${query[0]}</a>
+  </td>
+</tr>`;
+    }
+
+    /**
+     * 
+     */
+    function generateResults() {
+      const target = document.getElementById("targets-input").value.trim();
+      const result = [];
+      const future = getNext60Days(new Date())
+      let id = 0
+
+      for (const date of future) {
+        const month = date.getMonth() + 1;
+        const day = date.getDate();
+        const year = date.getFullYear();
+        const dateVariations = [];
+
+        generateDateCombinations(year, month, day).forEach(date => dateVariations.push('"' + date + '"'));
+
+        monthSegments = months[month - 1]
+
+        for (const month of monthSegments) {
+          dateVariations.push(`"${month} ${getOrdinalIndicator(day)} ${year}"`);
+          dateVariations.push(`"${month} ${getOrdinalIndicator(day)}, ${year}"`);
+          dateVariations.push(`"${month} ${day} ${year}"`);
+          dateVariations.push(`"${month} ${day}, ${year}"`);
+        }
+
+        result.push([
+          `${month}/${day}/${year}`, 
+          `"${target}" AND (${dateVariations.join(' OR ')})\n`, 
+          id]
+        );
+
+        id += 1
+      }
+
+      let list = ''
+      
+      result.forEach(query => list += getDateRow(query))
+
+      const outputContainer = document.getElementById("output-container");
+      const copyBtn = document.getElementById("copy-btn");
+
+      outputContainer.innerHTML = `<table>${list}</table>`;
+    }
+  </script>
+</body>
+</html>
+
