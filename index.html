@@ -34,6 +34,7 @@
     .output-container {
       margin-top: 20px;
       background-color: #fff;
+      margin-bottom: 20px;
       padding: 20px;
       border-radius: 8px;
       border: 1px solid #ccc;
@@ -80,9 +81,13 @@
 
   <div class="container">
     <h1>Future Twitter Search</h1>
-    <p>Enter a search term, and get the next 60 days of search queries for that term</p>
-    <input type="text" id="targets-input" placeholder="Enter targets here" />
-    <button onclick="generateResults()">Generate</button>
+    <p>
+      Enter a search term, and get the next 60 days of search queries for that term
+      <br>
+      <i><a href="https://x.com/i/flow/login" target="_blank">(Make sure you are logged into Twitter first!)</a></i>
+    </p>
+    <input type="text" id="targets-input" placeholder="Enter search term" />
+    <button onclick="generateResults()">Generate Future Searches</button>
     
     <div class="output-container" id="output-container"></div>
   </div>
