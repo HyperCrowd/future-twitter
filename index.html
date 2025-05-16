@@ -82,7 +82,7 @@
   <div class="container">
     <h1>Future Twitter Search</h1>
     <p>
-      Enter a search term, and get the next 60 days of search queries for that term
+      Enter a search term, and get the next year of search queries for that term
       <br>
       <i><a href="https://x.com/i/flow/login" target="_blank">(Make sure you are logged into Twitter first!)</a></i>
     </p>
@@ -170,7 +170,7 @@
       let currentDate = new Date(startDate);
       
       // Loop to add the next 60 days
-      for (let i = 0; i < 60; i++) {
+      for (let i = 0; i < 365; i++) {
           // Push the current date into the array
           dateArray.push(new Date(currentDate));  // Add a copy of the current date
           // Increment the current date by one day
